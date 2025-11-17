@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前后端连接测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #2196F3;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.online {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.offline {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 前后端连接测试工具</h1>
+        
+        <div class="test-section">
+            <h2>📡 服务器状态</h2>
+            <p>
+                后端服务器: <span id="backend-status" class="status offline">检测中...</span>
+            </p>
+            <p>
+                前端应用: <span id="frontend-status" class="status offline">检测中...</span>
+            </p>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 API 测试</h2>
+            
+            <h3>1. 测试项目 API</h3>
+            <button onclick="testProjects()">测试 GET /api/projects</button>
+            <div id="projects-result"></div>
+
+            <h3>2. 测试博客 API</h3>
+            <button onclick="testBlog()">测试 GET /api/blog</button>
+            <div id="blog-result"></div>
+
+            <h3>3. 测试联系 API</h3>
+            <button onclick="testContact()">测试 POST /api/contact</button>
+            <div id="contact-result"></div>
+
+            <h3>4. 测试登录 API</h3>
+            <button onclick="testLogin()">测试 POST /api/users/login</button>
+            <div id="login-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 CORS 测试</h2>
+            <p>测试跨域资源共享（CORS）是否正确配置</p>
+            <button onclick="testCORS()">测试 CORS</button>
+            <div id="cors-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 完整测试</h2>
+            <button onclick="runAllTests()">运行所有测试</button>
+            <div id="all-tests-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        const FRONTEND_URL = 'http://localhost:5174';
+
+        // 检查服务器状态
+        async function checkServers() {
+            // 检查后端
+            try {
+                const response = await fetch(`${API_BASE_URL}/projects`);
+                if (response.ok) {
+                    document.getElementById('backend-status').textContent = '在线';
+                    document.getElementById('backend-status').className = 'status online';
+                } else {
+                    throw new Error('响应错误');
+                }
+            } catch (error) {
+                document.getElementById('backend-status').textContent = '离线';
+                document.getElementById('backend-status').className = 'status offline';
+            }
+
+            // 检查前端
+            try {
+                const response = await fetch(FRONTEND_URL);
+                if (response.ok) {
+                    document.getElementById('frontend-status').textContent = '在线';
+                    document.getElementById('frontend-status').className = 'status online';
+                } else {
+                    throw new Error('响应错误');
+                }
+            } catch (error) {
+                document.getElementById('frontend-status').textContent = '离线';
+                document.getElementById('frontend-status').className = 'status offline';
+            }
+        }
+
+        // 测试项目 API
+        async function testProjects() {
+            const resultDiv = document.getElementById('projects-result');
+            resultDiv.innerHTML = '<div class="result info">测试中...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/projects`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <strong>✅ 成功！</strong><br>
+                            状态码: ${response.status}<br>
+                            项目数量: ${data.count}<br>
+                            数据预览:<br>
+                            ${JSON.stringify(data.data.slice(0, 2), null, 2)}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.message || '请求失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ 失败！</strong><br>
+                        错误信息: ${error.message}<br>
+                        可能原因: 后端服务器未运行或 CORS 配置错误
+                    </div>
+                `;
+            }
+        }
+
+        // 测试博客 API
+        async function testBlog() {
+            const resultDiv = document.getElementById('blog-result');
+            resultDiv.innerHTML = '<div class="result info">测试中...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/blog`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <strong>✅ 成功！</strong><br>
+                            状态码: ${response.status}<br>
+                            文章数量: ${data.count}<br>
+                            数据预览:<br>
+                            ${JSON.stringify(data.data.slice(0, 2), null, 2)}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.message || '请求失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ 失败！</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试联系 API
+        async function testContact() {
+            const resultDiv = document.getElementById('contact-result');
+            resultDiv.innerHTML = '<div class="result info">测试中...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: '测试用户',
+                        email: 'test@example.com',
+                        message: '这是一条测试消息'
+                    })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <strong>✅ 成功！</strong><br>
+                            状态码: ${response.status}<br>
+                            响应: ${JSON.stringify(data, null, 2)}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.message || '请求失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ 失败！</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试登录 API
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = '<div class="result info">测试中...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'password123'
+                    })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <strong>✅ 成功！</strong><br>
+                            状态码: ${response.status}<br>
+                            用户: ${data.username}<br>
+                            Token: ${data.token.substring(0, 50)}...
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.message || '请求失败');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ 失败！</strong><br>
+                        错误信息: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试 CORS
+        async function testCORS() {
+            const resultDiv = document.getElementById('cors-result');
+            resultDiv.innerHTML = '<div class="result info">测试中...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/projects`);
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                };
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <strong>✅ CORS 配置正确！</strong><br>
+                            CORS 头信息:<br>
+                            ${JSON.stringify(corsHeaders, null, 2)}
+                        </div>
+                    `;
+                } else {
+                    throw new Error('CORS 配置可能有问题');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ CORS 测试失败！</strong><br>
+                        错误信息: ${error.message}<br>
+                        建议: 检查后端 server.js 中的 CORS 配置
+                    </div>
+                `;
+            }
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            const resultDiv = document.getElementById('all-tests-result');
+            resultDiv.innerHTML = '<div class="result info">运行所有测试...</div>';
+
+            const tests = [
+                { name: '项目 API', fn: testProjects },
+                { name: '博客 API', fn: testBlog },
+                { name: '联系 API', fn: testContact },
+                { name: '登录 API', fn: testLogin },
+                { name: 'CORS', fn: testCORS }
+            ];
+
+            let results = [];
+            for (const test of tests) {
+                try {
+                    await test.fn();
+                    results.push(`✅ ${test.name}: 通过`);
+                } catch (error) {
+                    results.push(`❌ ${test.name}: 失败 - ${error.message}`);
+                }
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            resultDiv.innerHTML = `
+                <div class="result ${results.every(r => r.startsWith('✅')) ? 'success' : 'error'}">
+                    <strong>测试完成！</strong><br>
+                    ${results.join('<br>')}
+                </div>
+            `;
+        }
+
+        // 页面加载时检查服务器状态
+        window.onload = checkServers;
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,37 @@
+========================================
+立即操作：在 GitHub 创建仓库
+========================================
+
+我已经为你打开了 GitHub 创建仓库页面。
+
+请按照以下步骤操作：
+
+第一步：登录 GitHub
+-------------------
+如果还没登录，请先登录：
+📧 邮箱: duonghongnga837@gmail.com
+🔑 密码: jaUtqbCa123
+
+第二步：填写仓库信息
+-------------------
+Repository name: fullstack-portfolio
+
+Description: Full-stack portfolio project with React and Node.js
+
+选择: Public (公开)
+
+⚠️ 重要：不要勾选以下任何选项：
+   □ Add a README file
+   □ Add .gitignore
+   □ Choose a license
+
+第三步：创建仓库
+-------------------
+点击绿色按钮 "Create repository"
+
+第四步：完成
+-------------------
+创建成功后，告诉我"创建好了"，我会继续推送代码！
+
+========================================
+
